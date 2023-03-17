@@ -1,0 +1,30 @@
+name: Merge upstream branches
+on:
+  workflow_dispatch:
+  schedule:
+    - cron:  '0 * * * *'
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - name: Sync Upstream
+        run: |
+          git config --global user.name "LL-Fork-Workflow"
+          git config --global user.email "auser@anemail.com"
+          git checkout main
+          git remote add lootlocker-upstream https://github.com/LootLocker/unreal-sdk.git
+          git log -n 2
+          git reset HEAD~1
+          git checkout -- .
+          git clean -fdx
+          git fetch lootlocker-upstream
+          git rebase lootlocker-upstream/main --no-autosquash --autostash
+          mv LootLockerSDK/* .
+          rm -r LootLockerSDK
+          git add -A
+          git commit -a -m "Move SDK to root"
+          git push --force-with-lease      
